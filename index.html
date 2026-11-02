@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="dark" name="color-scheme"/><meta content="#101b2a" name="theme-color"/><title>Preventive Maintenance / Megelőző karbantartás</title>
+<style>
+:root {--page:#101b2a;--card:#293f54;--card2:#23394e;--edge:#829bb2;--yellow:#ffe45f;--white:#fff;--green:#12683d;--red:#bf202c}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:auto}body{margin:0;min-width:280px;background:var(--page);color:var(--white);font:16px/1.43 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}a{color:inherit}button,input,label{font:inherit}button,label{touch-action:manipulation}a:focus-visible,button:focus-visible,input:focus-visible,label:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}#app{counter-reset:done_weekly done_monthly done_quarterly done_semiannual done_annual done_sixty;max-width:680px;margin:0 auto;padding:20px 15px max(26px,env(safe-area-inset-bottom))}
+/* The screens remain in the document, preserving native checkbox state and CSS counters. */
+.screen{visibility:hidden;position:absolute;height:0;max-height:0;width:1px;overflow:hidden;pointer-events:none}
+.screen:target{visibility:visible;position:static;height:auto;max-height:none;width:auto;overflow:visible;pointer-events:auto}
+#home{visibility:visible;position:static;height:auto;max-height:none;width:auto;pointer-events:auto}
+.screen:target~#home{visibility:hidden;position:absolute;height:0;max-height:0;width:1px;overflow:hidden;pointer-events:none}
+.hu{display:none}
+#lang-hu:checked~#app .hu{display:inline}
+#lang-hu:checked~#app .en{display:none}
+.lang-radio{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.homehead{display:flex;align-items:center;gap:8px;margin:2px 0 22px}
+.flagbox{flex:none;display:flex;gap:4px}
+.flag{display:flex;align-items:center;justify-content:center;width:39px;height:42px;font-size:26px;border:2px solid transparent;border-radius:9px;background:#283e53;cursor:pointer;user-select:none;-webkit-user-select:none}
+#lang-en:checked~#app .flag[for="lang-en"],#lang-hu:checked~#app .flag[for="lang-hu"]{border-color:var(--yellow);background:#526679}
+.homehead h1{font-size:clamp(17px,4.35vw,25px);font-weight:850;text-align:center;line-height:1.19;letter-spacing:.01em;flex:1;margin:0;overflow-wrap:anywhere}
+.subhead{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center;gap:6px;margin-bottom:19px}.subhead h1{margin:0;font-size:clamp(18px,5.1vw,24px);font-weight:800;line-height:1.22;text-align:center;overflow-wrap:anywhere}.nav-arrow{display:flex;align-items:center;justify-content:center;min-height:46px;min-width:46px;background:#304960;border:1px solid var(--edge);border-radius:11px;text-decoration:none;font-size:28px;line-height:1}
+.stack{display:flex;flex-direction:column;gap:11px}
+.panel{display:flex;align-items:center;gap:12px;width:100%;min-height:78px;padding:13px 15px;background:var(--card);border:1.5px solid var(--edge);border-radius:13px;text-align:left;text-decoration:none;color:white;box-shadow:0 2px 0 #0002}.panel:active{background:#3c546b}.panel-name{flex:1;font-size:clamp(16px,4.25vw,19px);font-weight:800;line-height:1.26;overflow-wrap:anywhere}.count{font-size:19px;font-weight:850;min-width:72px;text-align:center;background:#122436;border-radius:9px;color:var(--yellow);padding:8px 9px;font-variant-numeric:tabular-nums;white-space:nowrap}.count::before{content:"0"}.panel-icon{font-size:30px;color:var(--yellow)}
+#app:has(#form-weekly .task-checkbox:checked) #home .count-weekly::before{content:counter(done_weekly)}
+#app:has(#form-monthly .task-checkbox:checked) #home .count-monthly::before{content:counter(done_monthly)}
+#app:has(#form-quarterly .task-checkbox:checked) #home .count-quarterly::before{content:counter(done_quarterly)}
+#app:has(#form-semiannual .task-checkbox:checked) #home .count-semiannual::before{content:counter(done_semiannual)}
+#app:has(#form-annual .task-checkbox:checked) #home .count-annual::before{content:counter(done_annual)}
+#app:has(#form-sixty .task-checkbox:checked) #home .count-sixty::before{content:counter(done_sixty)}
+#app:not(:has(#form-weekly .task-checkbox:not(:checked))) #home .panel-weekly,
+#app:not(:has(#form-monthly .task-checkbox:not(:checked))) #home .panel-monthly,
+#app:not(:has(#form-quarterly .task-checkbox:not(:checked))) #home .panel-quarterly,
+#app:not(:has(#form-semiannual .task-checkbox:not(:checked))) #home .panel-semiannual,
+#app:not(:has(#form-annual .task-checkbox:not(:checked))) #home .panel-annual,
+#app:not(:has(#form-sixty .task-checkbox:not(:checked))) #home .panel-sixty{background:var(--green);border-color:#82e9a8}
+#app:not(:has(#form-weekly .task-checkbox:not(:checked))) #home .panel-weekly .count,
+#app:not(:has(#form-monthly .task-checkbox:not(:checked))) #home .panel-monthly .count,
+#app:not(:has(#form-quarterly .task-checkbox:not(:checked))) #home .panel-quarterly .count,
+#app:not(:has(#form-semiannual .task-checkbox:not(:checked))) #home .panel-semiannual .count,
+#app:not(:has(#form-annual .task-checkbox:not(:checked))) #home .panel-annual .count,
+#app:not(:has(#form-sixty .task-checkbox:not(:checked))) #home .panel-sixty .count{color:white}
+.task-list{display:flex;flex-direction:column;gap:10px}.task-row{display:flex;min-height:76px;align-items:stretch;background:var(--card2);border:1px solid #7894ad;border-radius:11px;overflow:hidden}
+.task-row:has(.task-checkbox:checked){background:#174a34;border-color:#71d69b}
+.task-name{padding:13px 10px 13px 15px;flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:9px;text-align:left;text-decoration:none;font-size:16px;font-weight:650;line-height:1.3;overflow-wrap:anywhere}.task-name:active{background:#ffffff15}.task-static{cursor:default}.task-static:active{background:transparent}.chev{flex:0 0 auto;color:var(--yellow);font-size:27px}
+.check-wrap{display:flex;justify-content:center;align-items:center;width:60px;flex:0 0 60px;border-left:1px solid #b4d2ea55;cursor:pointer;-webkit-tap-highlight-color:transparent}.task-checkbox{width:31px;height:31px;margin:0;flex:none;border:2px solid #dce8f5;border-radius:7px;background:#101e2c;appearance:none;-webkit-appearance:none;position:relative;cursor:pointer}
+.task-checkbox:checked{background:#14834d;border-color:#adffcb}.task-checkbox:checked::after{content:"";position:absolute;width:8px;height:15px;left:9px;top:2px;border-right:3px solid white;border-bottom:3px solid white;transform:rotate(45deg)}
+#form-weekly .task-checkbox:checked{counter-increment:done_weekly}#form-monthly .task-checkbox:checked{counter-increment:done_monthly}#form-quarterly .task-checkbox:checked{counter-increment:done_quarterly}#form-semiannual .task-checkbox:checked{counter-increment:done_semiannual}#form-annual .task-checkbox:checked{counter-increment:done_annual}#form-sixty .task-checkbox:checked{counter-increment:done_sixty}
+.clear-button{display:flex;justify-content:center;align-items:center;width:100%;min-height:57px;margin-top:17px;border:2px solid #ff6770;border-radius:12px;background:var(--red);font-weight:850;font-size:19px;letter-spacing:.025em;color:white;text-decoration:none;cursor:pointer}.clear-button:active{background:#a71924}
+.detail-title{font-size:clamp(21px,5.6vw,27px);font-weight:800;line-height:1.25;overflow-wrap:anywhere;margin:10px 0 21px}.section-title{margin:0 0 12px;color:var(--yellow);font-size:17px;font-weight:800}.material-list{display:flex;flex-direction:column;gap:10px}.material{background:var(--card);border:1px solid #758fa6;border-radius:10px;padding:16px 14px;color:white;font-weight:650;overflow-wrap:anywhere}.material.none{text-align:center}.material-link{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none}.material-link .chev{font-size:21px}
+.note{margin:13px 0 0;border-left:4px solid var(--yellow);background:#33475b;padding:12px 14px;border-radius:8px;font-size:15px}.table-wrap{border:1px solid #8297ae;border-radius:11px;overflow:hidden}table{border-collapse:collapse;table-layout:fixed;width:100%}col.col-cons{width:57%}col.col-mfr{width:43%}td,th{padding:11px 9px;text-align:left;vertical-align:middle;overflow-wrap:anywhere}th{background:#354e66;color:var(--yellow);font-weight:800;font-size:14px}tr:nth-child(odd) td{background:#22374d}tr:nth-child(even) td{background:#2a4057}tr+tr td{border-top:1px solid #9db4ca32}.tablelink{display:flex;justify-content:space-between;gap:4px;align-items:center;color:var(--yellow);font-weight:700;text-decoration:underline;text-underline-offset:3px;line-height:1.32;min-height:43px}.mfr{color:white;font-size:14px}.mfr-card{border:1px solid #7892a9;background:var(--card);border-radius:10px;padding:14px;margin-bottom:19px}.mfr-label{color:#dce9f7;font-size:13px;font-weight:750}.mfr-val{font-size:18px;font-weight:750;margin-top:3px}.usage-group{margin-bottom:17px}.usage-head{margin:0 0 9px;padding:10px 12px;border-radius:7px;color:var(--yellow);font-weight:800;background:#344d62}.usage-entry{background:#273d52;border-radius:8px;margin-bottom:8px;padding:12px 13px;font-weight:550}
+@media(min-width:580px){#app{padding-left:24px;padding-right:24px}}@media(max-width:340px){.flag{width:35px;height:40px}.homehead{gap:4px}.mfr{font-size:13px}td,th{padding:10px 8px}}
+
+/* Standalone search: limited JS, all checklist behavior stays CSS-only. */
+.search-area{margin:-4px 0 20px;padding:13px 12px 12px;background:#23394e;border:1px solid #829bb2;border-radius:13px}
+.search-bar{display:flex;align-items:stretch;gap:8px}
+.search-input{display:block;flex:1;min-width:0;height:49px;padding:10px 12px;border-radius:9px;border:2px solid #b3c8d8;background:#ffffff;color:#102238;font-size:16px;outline-offset:2px;-webkit-appearance:none;appearance:none}
+.search-input::placeholder{color:#536477;opacity:1}
+.search-btn{width:53px;min-width:53px;height:49px;display:flex;align-items:center;justify-content:center;border:2px solid #ffffff88;border-radius:9px;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.search-btn.exact{background:#147841}.search-btn.partial{background:#1169b7}
+.search-btn:active{filter:brightness(1.2)}.search-btn svg{height:26px;width:26px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.8}
+.search-legend{display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:9px;font-size:12px;font-weight:750;line-height:1.4}
+.search-label{display:inline-flex;align-items:center;gap:5px}.search-dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:#35d17b}.search-dot.blue{background:#54b5ff}
+.result-intro{color:#e5eef7;font-size:16px;margin:3px 0 14px}
+.result-group{margin:16px 0 10px;padding:10px 12px;background:#344d62;color:var(--yellow);font-weight:800;border-radius:8px}
+.result-entry{display:flex;align-items:center;gap:10px;min-height:63px;padding:11px 12px;margin-bottom:9px;text-decoration:none;border:1px solid #839bb3;border-radius:10px;background:#273f55}
+.result-entry:active{background:#365673}.result-name{flex:1;min-width:0;font-weight:650;line-height:1.35;overflow-wrap:anywhere}.result-sub{color:#cbdbe9;font-size:13px;margin-top:4px}.result-chev{color:var(--yellow);font-size:26px;font-weight:700}
+.result-empty{background:#2b4155;border-radius:9px;padding:16px 14px;margin-top:14px}.target-highlight{outline:3px solid var(--yellow)!important;outline-offset:3px}
+@media(max-width:340px){.search-area{padding:11px 9px}.search-bar{gap:6px}.search-btn{width:46px;min-width:46px}.search-legend{gap:8px;font-size:11px}}
+</style></head><body>
+<input checked="" class="lang-radio" id="lang-en" name="app-language" type="radio"/><input class="lang-radio" id="lang-hu" name="app-language" type="radio"/>
+<main id="app">
+<section class="screen" id="period-weekly">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">WEEKLY MAINTENANCE</span><span class="hu" lang="hu">HETI KARBANTARTÁS</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<form autocomplete="off" id="form-weekly"><div class="task-list">
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Antenna Visual Inspection</span><span class="hu" lang="hu">Antenna szemrevételezéses ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Antenna Visual Inspection / Antenna szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_W01" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Leveling Inspection</span><span class="hu" lang="hu">Szintezés ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Leveling Inspection / Szintezés ellenőrzése" autocomplete="off" class="task-checkbox" name="done_W02" type="checkbox"/></label></div>
+</div><button class="clear-button" type="reset"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></button></form>
+</section>
+<section class="screen" id="period-monthly">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">MONTHLY MAINTENANCE</span><span class="hu" lang="hu">HAVI KARBANTARTÁS</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<form autocomplete="off" id="form-monthly"><div class="task-list">
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Antenna Assembly Painted Parts Inspection</span><span class="hu" lang="hu">Antennaszerelvény festett alkatrészeinek ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Antenna Assembly Painted Parts Inspection / Antennaszerelvény festett alkatrészeinek ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M01" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Antenna Assembly Unpainted Parts Inspection</span><span class="hu" lang="hu">Antennaszerelvény festetlen alkatrészeinek ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Antenna Assembly Unpainted Parts Inspection / Antennaszerelvény festetlen alkatrészeinek ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M02" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Antenna Assembly Internal Inspection</span><span class="hu" lang="hu">Antennaszerelvény belső ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Antenna Assembly Internal Inspection / Antennaszerelvény belső ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M03" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Antenna Assembly Automatic Greasing System Inspection</span><span class="hu" lang="hu">Antennaszerelvény automatikus zsírzórendszerének ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Antenna Assembly Automatic Greasing System Inspection / Antennaszerelvény automatikus zsírzórendszerének ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M04" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Azimuth Gear Visual Inspection</span><span class="hu" lang="hu">Azimut-hajtómű szemrevételezéses ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Azimuth Gear Visual Inspection / Azimut-hajtómű szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M05" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Connectors Visual Inspection</span><span class="hu" lang="hu">Csatlakozók szemrevételezéses ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Connectors Visual Inspection / Csatlakozók szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M06" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-M07"><span><span class="en" lang="en">Antenna Batteries Visual Inspection</span><span class="hu" lang="hu">Antennaakkumulátorok szemrevételezéses ellenőrzése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Antenna Batteries Visual Inspection / Antennaakkumulátorok szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M07" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Maintenance Platform Visual Inspection</span><span class="hu" lang="hu">Karbantartóplatform szemrevételezéses ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Maintenance Platform Visual Inspection / Karbantartóplatform szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_M08" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">CAL Network Test</span><span class="hu" lang="hu">CAL-hálózat tesztelése</span></span></div><label class="check-wrap"><input aria-label="CAL Network Test / CAL-hálózat tesztelése" autocomplete="off" class="task-checkbox" name="done_M09" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Antenna Rotation Test</span><span class="hu" lang="hu">Antenna forgáspróbája</span></span></div><label class="check-wrap"><input aria-label="Antenna Rotation Test / Antenna forgáspróbája" autocomplete="off" class="task-checkbox" name="done_M10" type="checkbox"/></label></div>
+</div><button class="clear-button" type="reset"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></button></form>
+</section>
+<section class="screen" id="period-quarterly">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">QUARTERLY MAINTENANCE</span><span class="hu" lang="hu">NEGYEDÉVES KARBANTARTÁS</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<form autocomplete="off" id="form-quarterly"><div class="task-list">
+<div class="task-row"><a class="task-name" href="#activity-Q01"><span><span class="en" lang="en">PDB1 Air Inlet Dust Filter Inspection</span><span class="hu" lang="hu">PDB1 légbeszívó porszűrőjének ellenőrzése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="PDB1 Air Inlet Dust Filter Inspection / PDB1 légbeszívó porszűrőjének ellenőrzése" autocomplete="off" class="task-checkbox" name="done_Q01" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q02"><span><span class="en" lang="en">Zero Pin Environmental Protection Treatment</span><span class="hu" lang="hu">Nullhelyzet-rögzítő csap korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Zero Pin Environmental Protection Treatment / Nullhelyzet-rögzítő csap korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q02" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q03"><span><span class="en" lang="en">Antenna Support Beams Locking Mechanism Environmental Protection Treatment</span><span class="hu" lang="hu">Antennatámasztó gerendák reteszelőszerkezetének korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Antenna Support Beams Locking Mechanism Environmental Protection Treatment / Antennatámasztó gerendák reteszelőszerkezetének korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q03" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q04"><span><span class="en" lang="en">CU Rack Rear Screws Environmental Protection Treatment</span><span class="hu" lang="hu">CU-állvány hátsó csavarjainak korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="CU Rack Rear Screws Environmental Protection Treatment / CU-állvány hátsó csavarjainak korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q04" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q05"><span><span class="en" lang="en">Micro-Switches Environmental Protection Treatment</span><span class="hu" lang="hu">Mikrokapcsolók korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Micro-Switches Environmental Protection Treatment / Mikrokapcsolók korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q05" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q06"><span><span class="en" lang="en">Cooling Pipes Environmental Protection Treatment</span><span class="hu" lang="hu">Hűtőközeg-csövek korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Cooling Pipes Environmental Protection Treatment / Hűtőközeg-csövek korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q06" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q07"><span><span class="en" lang="en">Leveling Jack Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Leveling Jack Environmental Protection Treatment / Szintezőemelők korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q07" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q08"><span><span class="en" lang="en">Densoplast Tape Environmental Protection Treatment</span><span class="hu" lang="hu">Densoplast szalag korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Densoplast Tape Environmental Protection Treatment / Densoplast szalag korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_Q08" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Elevation Actuators and Leveling Jacks Extending Parts Visual Inspection</span><span class="hu" lang="hu">Elevációs aktuátorok és szintezőemelők kitolható részeinek szemrevételezéses ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Elevation Actuators and Leveling Jacks Extending Parts Visual Inspection / Elevációs aktuátorok és szintezőemelők kitolható részeinek szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_Q09" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q10"><span><span class="en" lang="en">Automatic Greasing Pump Filling</span><span class="hu" lang="hu">Automatikus zsírzószivattyú feltöltése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Automatic Greasing Pump Filling / Automatikus zsírzószivattyú feltöltése" autocomplete="off" class="task-checkbox" name="done_Q10" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-Q11"><span><span class="en" lang="en">Maintenance Platform Maintenance</span><span class="hu" lang="hu">Karbantartóplatform karbantartása</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Maintenance Platform Maintenance / Karbantartóplatform karbantartása" autocomplete="off" class="task-checkbox" name="done_Q11" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Maintenance Platform Control Box Buzzer Test</span><span class="hu" lang="hu">Karbantartóplatform vezérlődobozának hangjelző-próbája</span></span></div><label class="check-wrap"><input aria-label="Maintenance Platform Control Box Buzzer Test / Karbantartóplatform vezérlődobozának hangjelző-próbája" autocomplete="off" class="task-checkbox" name="done_Q12" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">PDB1 Lightning Arrestors Visual Inspection</span><span class="hu" lang="hu">PDB1 túlfeszültség-levezetőinek szemrevételezéses ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="PDB1 Lightning Arrestors Visual Inspection / PDB1 túlfeszültség-levezetőinek szemrevételezéses ellenőrzése" autocomplete="off" class="task-checkbox" name="done_Q13" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Grounding Inspection</span><span class="hu" lang="hu">Földelés ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Grounding Inspection / Földelés ellenőrzése" autocomplete="off" class="task-checkbox" name="done_Q14" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Leveling Motors Inspection</span><span class="hu" lang="hu">Szintezőmotorok ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Leveling Motors Inspection / Szintezőmotorok ellenőrzése" autocomplete="off" class="task-checkbox" name="done_Q15" type="checkbox"/></label></div>
+</div><button class="clear-button" type="reset"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></button></form>
+</section>
+<section class="screen" id="period-semiannual">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">SEMI-ANNUAL MAINTENANCE</span><span class="hu" lang="hu">FÉLÉVES KARBANTARTÁS</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<form autocomplete="off" id="form-semiannual"><div class="task-list">
+<div class="task-row"><a class="task-name" href="#activity-S01"><span><span class="en" lang="en">Antenna Support Beams Lubrication</span><span class="hu" lang="hu">Antennatámasztó gerendák kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Antenna Support Beams Lubrication / Antennatámasztó gerendák kenése" autocomplete="off" class="task-checkbox" name="done_S01" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-S02"><span><span class="en" lang="en">Antenna Bracing Bars Lubrication</span><span class="hu" lang="hu">Antenna merevítőrúdjainak kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Antenna Bracing Bars Lubrication / Antenna merevítőrúdjainak kenése" autocomplete="off" class="task-checkbox" name="done_S02" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-S03"><span><span class="en" lang="en">Pedestal Azimuth Bearing Lubrication</span><span class="hu" lang="hu">Talapzat azimutcsapágyának kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Pedestal Azimuth Bearing Lubrication / Talapzat azimutcsapágyának kenése" autocomplete="off" class="task-checkbox" name="done_S03" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-S04"><span><span class="en" lang="en">Azimuth Pinion Gear Lubrication</span><span class="hu" lang="hu">Azimut-hajtás kisfogaskerekének kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Azimuth Pinion Gear Lubrication / Azimut-hajtás kisfogaskerekének kenése" autocomplete="off" class="task-checkbox" name="done_S04" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">External Wiring Inspection</span><span class="hu" lang="hu">Külső kábelezés ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="External Wiring Inspection / Külső kábelezés ellenőrzése" autocomplete="off" class="task-checkbox" name="done_S05" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Fabric Covers Inspection</span><span class="hu" lang="hu">Szövet védőburkolatok ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Fabric Covers Inspection / Szövet védőburkolatok ellenőrzése" autocomplete="off" class="task-checkbox" name="done_S06" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-S07"><span><span class="en" lang="en">Antenna Heat Exchanger Inspection</span><span class="hu" lang="hu">Antenna hőcserélőjének ellenőrzése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Antenna Heat Exchanger Inspection / Antenna hőcserélőjének ellenőrzése" autocomplete="off" class="task-checkbox" name="done_S07" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-S08"><span><span class="en" lang="en">Antenna Coolant Quality Check</span><span class="hu" lang="hu">Antenna hűtőfolyadékának minőségellenőrzése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Antenna Coolant Quality Check / Antenna hűtőfolyadékának minőségellenőrzése" autocomplete="off" class="task-checkbox" name="done_S08" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-S09"><span><span class="en" lang="en">RU Cleaning and Inspection</span><span class="hu" lang="hu">RU tisztítása és ellenőrzése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="RU Cleaning and Inspection / RU tisztítása és ellenőrzése" autocomplete="off" class="task-checkbox" name="done_S09" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">RU Maintenance Following 6 Months Downtime or Higher</span><span class="hu" lang="hu">RU karbantartása legalább 6 hónapos üzemszünet után</span></span></div><label class="check-wrap"><input aria-label="RU Maintenance Following 6 Months Downtime or Higher / RU karbantartása legalább 6 hónapos üzemszünet után" autocomplete="off" class="task-checkbox" name="done_S10" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Emergency Buttons Test</span><span class="hu" lang="hu">Vészleállító gombok működésének ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="Emergency Buttons Test / Vészleállító gombok működésének ellenőrzése" autocomplete="off" class="task-checkbox" name="done_S11" type="checkbox"/></label></div></div><button class="clear-button" type="reset"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></button></form>
+</section>
+<section class="screen" id="period-annual">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">ANNUAL MAINTENANCE</span><span class="hu" lang="hu">ÉVES KARBANTARTÁS</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<form autocomplete="off" id="form-annual"><div class="task-list">
+<div class="task-row"><a class="task-name" href="#activity-A01"><span><span class="en" lang="en">External Connectors Environmental Protection Treatment</span><span class="hu" lang="hu">Külső csatlakozók korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="External Connectors Environmental Protection Treatment / Külső csatlakozók korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_A01" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">PDBs Metal Trace Screws Tightening</span><span class="hu" lang="hu">PDB-k fémvezetősávjait rögzítő csavarok meghúzása</span></span></div><label class="check-wrap"><input aria-label="PDBs Metal Trace Screws Tightening / PDB-k fémvezetősávjait rögzítő csavarok meghúzása" autocomplete="off" class="task-checkbox" name="done_A02" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">PDBs Annual Inspection</span><span class="hu" lang="hu">PDB-k éves ellenőrzése</span></span></div><label class="check-wrap"><input aria-label="PDBs Annual Inspection / PDB-k éves ellenőrzése" autocomplete="off" class="task-checkbox" name="done_A03" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A04"><span><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Azimuth Gear Oil Replacement / Azimut-hajtómű olajcseréje" autocomplete="off" class="task-checkbox" name="done_A04" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A05"><span><span class="en" lang="en">Elevation Actuators to Antenna Assembly Bolts and Lock Thread Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorokat az antennaszerelvényhez rögzítő csavarok és biztosítómenetek korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Elevation Actuators to Antenna Assembly Bolts and Lock Thread Environmental Protection Treatment / Elevációs aktuátorokat az antennaszerelvényhez rögzítő csavarok és biztosítómenetek korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_A05" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A06"><span><span class="en" lang="en">Elevation Actuators Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Elevation Actuators Lubrication / Elevációs aktuátorok kenése" autocomplete="off" class="task-checkbox" name="done_A06" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A07"><span><span class="en" lang="en">Elevation Actuators Extending Section Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorok kitolható szakaszának korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Elevation Actuators Extending Section Environmental Protection Treatment / Elevációs aktuátorok kitolható szakaszának korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_A07" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A08"><span><span class="en" lang="en">Leveling Jacks Regular Lubrication</span><span class="hu" lang="hu">Szintezőemelők rendszeres kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Leveling Jacks Regular Lubrication / Szintezőemelők rendszeres kenése" autocomplete="off" class="task-checkbox" name="done_A08" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A09"><span><span class="en" lang="en">Extenders Regular Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok rendszeres kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Extenders Regular Lubrication / Kihúzható támaszok rendszeres kenése" autocomplete="off" class="task-checkbox" name="done_A09" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-A10"><span><span class="en" lang="en">Leveling Jacks Extending Part Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők kitolható részeinek korrózióvédelmi kezelése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Leveling Jacks Extending Part Environmental Protection Treatment / Szintezőemelők kitolható részeinek korrózióvédelmi kezelése" autocomplete="off" class="task-checkbox" name="done_A10" type="checkbox"/></label></div>
+<div class="task-row"><div class="task-name task-static"><span><span class="en" lang="en">Maintenance Platform Annual Certification</span><span class="hu" lang="hu">Karbantartóplatform éves biztonságtechnikai felülvizsgálata</span></span></div><label class="check-wrap"><input aria-label="Maintenance Platform Annual Certification / Karbantartóplatform éves biztonságtechnikai felülvizsgálata" autocomplete="off" class="task-checkbox" name="done_A11" type="checkbox"/></label></div>
+</div><button class="clear-button" type="reset"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></button></form>
+</section>
+<section class="screen" id="period-sixty">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">60-MONTH MAINTENANCE</span><span class="hu" lang="hu">60 HAVONKÉNTI KARBANTARTÁS</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<form autocomplete="off" id="form-sixty"><div class="task-list">
+<div class="task-row"><a class="task-name" href="#activity-F01"><span><span class="en" lang="en">Elevation Actuators Bottom Nipple Extensive Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok alsó zsírzógombjainak átfogó kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Elevation Actuators Bottom Nipple Extensive Lubrication / Elevációs aktuátorok alsó zsírzógombjainak átfogó kenése" autocomplete="off" class="task-checkbox" name="done_F01" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-F02"><span><span class="en" lang="en">Leveling Jacks Extensive Lubrication</span><span class="hu" lang="hu">Szintezőemelők átfogó kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Leveling Jacks Extensive Lubrication / Szintezőemelők átfogó kenése" autocomplete="off" class="task-checkbox" name="done_F02" type="checkbox"/></label></div>
+<div class="task-row"><a class="task-name" href="#activity-F03"><span><span class="en" lang="en">Extenders Extensive Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok átfogó kenése</span></span><span aria-hidden="true" class="chev">›</span></a><label class="check-wrap"><input aria-label="Extenders Extensive Lubrication / Kihúzható támaszok átfogó kenése" autocomplete="off" class="task-checkbox" name="done_F03" type="checkbox"/></label></div>
+</div><button class="clear-button" type="reset"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></button></form>
+</section>
+
+
+
+
+
+
+
+
+<section class="screen" id="activity-M07">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-monthly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Antenna Batteries Visual Inspection</span><span class="hu" lang="hu">Antennaakkumulátorok szemrevételezéses ellenőrzése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-distilled"><span><span class="en" lang="en">Distilled water</span><span class="hu" lang="hu">Desztillált víz</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+
+
+<section class="screen" id="activity-Q01">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">PDB1 Air Inlet Dust Filter Inspection</span><span class="hu" lang="hu">PDB1 légbeszívó porszűrőjének ellenőrzése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q02">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Zero Pin Environmental Protection Treatment</span><span class="hu" lang="hu">Nullhelyzet-rögzítő csap korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q03">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Antenna Support Beams Locking Mechanism Environmental Protection Treatment</span><span class="hu" lang="hu">Antennatámasztó gerendák reteszelőszerkezetének korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-p37"><span><span class="en" lang="en">Molykote P37</span><span class="hu" lang="hu">Molykote P37</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q04">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">CU Rack Rear Screws Environmental Protection Treatment</span><span class="hu" lang="hu">CU-állvány hátsó csavarjainak korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q05">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Micro-Switches Environmental Protection Treatment</span><span class="hu" lang="hu">Mikrokapcsolók korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-metal"><span><span class="en" lang="en">Molykote Metal Protector Plus</span><span class="hu" lang="hu">Molykote Metal Protector Plus</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q06">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Cooling Pipes Environmental Protection Treatment</span><span class="hu" lang="hu">Hűtőközeg-csövek korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-metal"><span><span class="en" lang="en">Molykote Metal Protector Plus</span><span class="hu" lang="hu">Molykote Metal Protector Plus</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q07">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Leveling Jack Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q08">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Densoplast Tape Environmental Protection Treatment</span><span class="hu" lang="hu">Densoplast szalag korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-densoplast"><span><span class="en" lang="en">Densoplast tape</span><span class="hu" lang="hu">Densoplast szalag</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+<section class="screen" id="activity-Q10">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Automatic Greasing Pump Filling</span><span class="hu" lang="hu">Automatikus zsírzószivattyú feltöltése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-Q11">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-quarterly">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Maintenance Platform Maintenance</span><span class="hu" lang="hu">Karbantartóplatform karbantartása</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-rocol"><span><span class="en" lang="en">Rocol Sapphire 2</span><span class="hu" lang="hu">Rocol Sapphire 2</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-metal"><span><span class="en" lang="en">Molykote Metal Protector Plus</span><span class="hu" lang="hu">Molykote Metal Protector Plus</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+
+
+
+<section class="screen" id="activity-S01">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Antenna Support Beams Lubrication</span><span class="hu" lang="hu">Antennatámasztó gerendák kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-p37"><span><span class="en" lang="en">Molykote P37</span><span class="hu" lang="hu">Molykote P37</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-S02">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Antenna Bracing Bars Lubrication</span><span class="hu" lang="hu">Antenna merevítőrúdjainak kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-antiseize"><span><span class="en" lang="en">Anti-Seize C5-A</span><span class="hu" lang="hu">Anti-Seize C5-A</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-S03">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Pedestal Azimuth Bearing Lubrication</span><span class="hu" lang="hu">Talapzat azimutcsapágyának kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-S04">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Azimuth Pinion Gear Lubrication</span><span class="hu" lang="hu">Azimut-hajtás kisfogaskerekének kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+
+<section class="screen" id="activity-S07">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Antenna Heat Exchanger Inspection</span><span class="hu" lang="hu">Antenna hőcserélőjének ellenőrzése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-brush"><span><span class="en" lang="en">Cleaning brush</span><span class="hu" lang="hu">Tisztítókefe</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-S08">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Antenna Coolant Quality Check</span><span class="hu" lang="hu">Antenna hűtőfolyadékának minőségellenőrzése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-antiseize"><span><span class="en" lang="en">Anti-Seize C5-A</span><span class="hu" lang="hu">Anti-Seize C5-A</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-S09">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-semiannual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">RU Cleaning and Inspection</span><span class="hu" lang="hu">RU tisztítása és ellenőrzése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-brush"><span><span class="en" lang="en">Cleaning brush</span><span class="hu" lang="hu">Tisztítókefe</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+<section class="screen" id="activity-A01">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">External Connectors Environmental Protection Treatment</span><span class="hu" lang="hu">Külső csatlakozók korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-dc4"><span><span class="en" lang="en">Dow Corning 4</span><span class="hu" lang="hu">Dow Corning 4</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+
+<section class="screen" id="activity-A04">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-clp68"><span><span class="en" lang="en">CLP HC 68</span><span class="hu" lang="hu">CLP HC 68</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-mobil626"><span><span class="en" lang="en">Mobil SHC 626</span><span class="hu" lang="hu">Mobil SHC 626</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-clp220"><span><span class="en" lang="en">CLP HC 220</span><span class="hu" lang="hu">CLP HC 220</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-mobil630"><span><span class="en" lang="en">Mobil SHC 630</span><span class="hu" lang="hu">Mobil SHC 630</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+<p class="note"><span class="en" lang="en">Oil alternatives — winter: CLP HC 68 or Mobil SHC 626. Summer: CLP HC 220 or Mobil SHC 630. Use the applicable oil, not all four.</span><span class="hu" lang="hu">Olajválasztás: télen CLP HC 68 vagy Mobil SHC 626; nyáron CLP HC 220 vagy Mobil SHC 630. A megfelelő olajfajtát válassza, nem kell mind a négy.</span></p>
+</section>
+<section class="screen" id="activity-A05">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Elevation Actuators to Antenna Assembly Bolts and Lock Thread Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorokat az antennaszerelvényhez rögzítő csavarok és biztosítómenetek korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-A06">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Elevation Actuators Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-A07">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Elevation Actuators Extending Section Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorok kitolható szakaszának korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-A08">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Leveling Jacks Regular Lubrication</span><span class="hu" lang="hu">Szintezőemelők rendszeres kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-A09">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Extenders Regular Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok rendszeres kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-A10">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-annual">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Leveling Jacks Extending Part Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők kitolható részeinek korrózióvédelmi kezelése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+
+<section class="screen" id="activity-F01">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-sixty">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Elevation Actuators Bottom Nipple Extensive Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok alsó zsírzógombjainak átfogó kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-F02">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-sixty">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Leveling Jacks Extensive Lubrication</span><span class="hu" lang="hu">Szintezőemelők átfogó kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="activity-F03">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#period-sixty">←</a><h1><span class="en" lang="en">ACTIVITY</span><span class="hu" lang="hu">KARBANTARTÁSI FELADAT</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Extenders Extensive Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok átfogó kenése</span></h2>
+<h3 class="section-title"><span class="en" lang="en">REQUIRED CONSUMABLES</span><span class="hu" lang="hu">SZÜKSÉGES SEGÉDANYAGOK</span></h3><div class="material-list">
+<a class="material material-link" href="#use-aeroshell7"><span><span class="en" lang="en">AeroShell 7</span><span class="hu" lang="hu">AeroShell 7</span></span><span aria-hidden="true" class="chev">›</span></a>
+<a class="material material-link" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true" class="chev">›</span></a>
+</div>
+</section>
+<section class="screen" id="consumables">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#home">←</a><h1><span class="en" lang="en">CONSUMABLES</span><span class="hu" lang="hu">KARBANTARTÁSI SEGÉDANYAGOK</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<div class="table-wrap"><table><colgroup><col class="col-cons"/><col class="col-mfr"/></colgroup><thead><tr><th><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></th><th><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></th></tr></thead><tbody>
+<tr><td><a class="tablelink" href="#use-aeroshell7"><span><span class="en" lang="en">AeroShell 7</span><span class="hu" lang="hu">AeroShell 7</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Shell Aviation</span><span class="hu" lang="hu">Shell Aviation</span></td></tr>
+<tr><td><a class="tablelink" href="#use-aeroshell33"><span><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Shell Aviation</span><span class="hu" lang="hu">Shell Aviation</span></td></tr>
+<tr><td><a class="tablelink" href="#use-antiseize"><span><span class="en" lang="en">Anti-Seize C5-A</span><span class="hu" lang="hu">Anti-Seize C5-A</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Henkel (Loctite)</span><span class="hu" lang="hu">Henkel (Loctite)</span></td></tr>
+<tr><td><a class="tablelink" href="#use-brush"><span><span class="en" lang="en">Cleaning brush</span><span class="hu" lang="hu">Tisztítókefe</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></td></tr>
+<tr><td><a class="tablelink" href="#use-cloths"><span><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></td></tr>
+<tr><td><a class="tablelink" href="#use-clp68"><span><span class="en" lang="en">CLP HC 68</span><span class="hu" lang="hu">CLP HC 68</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Not specified</span><span class="hu" lang="hu">Nincs megadva</span></td></tr>
+<tr><td><a class="tablelink" href="#use-clp220"><span><span class="en" lang="en">CLP HC 220</span><span class="hu" lang="hu">CLP HC 220</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Not specified</span><span class="hu" lang="hu">Nincs megadva</span></td></tr>
+<tr><td><a class="tablelink" href="#use-densoplast"><span><span class="en" lang="en">Densoplast tape</span><span class="hu" lang="hu">Densoplast szalag</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">DENSO GmbH</span><span class="hu" lang="hu">DENSO GmbH</span></td></tr>
+<tr><td><a class="tablelink" href="#use-distilled"><span><span class="en" lang="en">Distilled water</span><span class="hu" lang="hu">Desztillált víz</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></td></tr>
+<tr><td><a class="tablelink" href="#use-dc4"><span><span class="en" lang="en">Dow Corning 4</span><span class="hu" lang="hu">Dow Corning 4</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Dow</span><span class="hu" lang="hu">Dow</span></td></tr>
+<tr><td><a class="tablelink" href="#use-ipa"><span><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></td></tr>
+<tr><td><a class="tablelink" href="#use-isoflex"><span><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">Klüber Lubrication</span><span class="hu" lang="hu">Klüber Lubrication</span></td></tr>
+<tr><td><a class="tablelink" href="#use-mobil626"><span><span class="en" lang="en">Mobil SHC 626</span><span class="hu" lang="hu">Mobil SHC 626</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">ExxonMobil</span><span class="hu" lang="hu">ExxonMobil</span></td></tr>
+<tr><td><a class="tablelink" href="#use-mobil630"><span><span class="en" lang="en">Mobil SHC 630</span><span class="hu" lang="hu">Mobil SHC 630</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">ExxonMobil</span><span class="hu" lang="hu">ExxonMobil</span></td></tr>
+<tr><td><a class="tablelink" href="#use-metal"><span><span class="en" lang="en">Molykote Metal Protector Plus</span><span class="hu" lang="hu">Molykote Metal Protector Plus</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">DuPont</span><span class="hu" lang="hu">DuPont</span></td></tr>
+<tr><td><a class="tablelink" href="#use-p37"><span><span class="en" lang="en">Molykote P37</span><span class="hu" lang="hu">Molykote P37</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">DuPont</span><span class="hu" lang="hu">DuPont</span></td></tr>
+<tr><td><a class="tablelink" href="#use-rocol"><span><span class="en" lang="en">Rocol Sapphire 2</span><span class="hu" lang="hu">Rocol Sapphire 2</span></span><span aria-hidden="true">›</span></a></td><td class="mfr"><span class="en" lang="en">ROCOL (ITW)</span><span class="hu" lang="hu">ROCOL (ITW)</span></td></tr>
+</tbody></table></div></section>
+<section class="screen" id="use-aeroshell7">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">AeroShell 7</span><span class="hu" lang="hu">AeroShell 7</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Shell Aviation</span><span class="hu" lang="hu">Shell Aviation</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">60 MONTHS</span><span class="hu" lang="hu">60 HAVONTA</span></div>
+<div class="usage-entry"><span class="en" lang="en">Extenders Extensive Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok átfogó kenése</span></div>
+</div>
+</section>
+<section class="screen" id="use-aeroshell33">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">AeroShell 33</span><span class="hu" lang="hu">AeroShell 33</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Shell Aviation</span><span class="hu" lang="hu">Shell Aviation</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jack Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők korrózióvédelmi kezelése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Extending Section Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorok kitolható szakaszának korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Regular Lubrication</span><span class="hu" lang="hu">Szintezőemelők rendszeres kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Extenders Regular Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok rendszeres kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Extending Part Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők kitolható részeinek korrózióvédelmi kezelése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">60 MONTHS</span><span class="hu" lang="hu">60 HAVONTA</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Bottom Nipple Extensive Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok alsó zsírzógombjainak átfogó kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Extensive Lubrication</span><span class="hu" lang="hu">Szintezőemelők átfogó kenése</span></div>
+</div>
+</section>
+<section class="screen" id="use-antiseize">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Anti-Seize C5-A</span><span class="hu" lang="hu">Anti-Seize C5-A</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Henkel (Loctite)</span><span class="hu" lang="hu">Henkel (Loctite)</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Bracing Bars Lubrication</span><span class="hu" lang="hu">Antenna merevítőrúdjainak kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Coolant Quality Check</span><span class="hu" lang="hu">Antenna hűtőfolyadékának minőségellenőrzése</span></div>
+</div>
+</section>
+<section class="screen" id="use-brush">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Cleaning brush</span><span class="hu" lang="hu">Tisztítókefe</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Heat Exchanger Inspection</span><span class="hu" lang="hu">Antenna hőcserélőjének ellenőrzése</span></div>
+<div class="usage-entry"><span class="en" lang="en">RU Cleaning and Inspection</span><span class="hu" lang="hu">RU tisztítása és ellenőrzése</span></div>
+</div>
+</section>
+<section class="screen" id="use-cloths">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Cleaning cloths</span><span class="hu" lang="hu">Tisztítókendők</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">MONTHLY</span><span class="hu" lang="hu">HAVI</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Batteries Visual Inspection</span><span class="hu" lang="hu">Antennaakkumulátorok szemrevételezéses ellenőrzése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">PDB1 Air Inlet Dust Filter Inspection</span><span class="hu" lang="hu">PDB1 légbeszívó porszűrőjének ellenőrzése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Zero Pin Environmental Protection Treatment</span><span class="hu" lang="hu">Nullhelyzet-rögzítő csap korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Support Beams Locking Mechanism Environmental Protection Treatment</span><span class="hu" lang="hu">Antennatámasztó gerendák reteszelőszerkezetének korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">CU Rack Rear Screws Environmental Protection Treatment</span><span class="hu" lang="hu">CU-állvány hátsó csavarjainak korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Micro-Switches Environmental Protection Treatment</span><span class="hu" lang="hu">Mikrokapcsolók korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Cooling Pipes Environmental Protection Treatment</span><span class="hu" lang="hu">Hűtőközeg-csövek korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jack Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Densoplast Tape Environmental Protection Treatment</span><span class="hu" lang="hu">Densoplast szalag korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Automatic Greasing Pump Filling</span><span class="hu" lang="hu">Automatikus zsírzószivattyú feltöltése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Maintenance Platform Maintenance</span><span class="hu" lang="hu">Karbantartóplatform karbantartása</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Support Beams Lubrication</span><span class="hu" lang="hu">Antennatámasztó gerendák kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Bracing Bars Lubrication</span><span class="hu" lang="hu">Antenna merevítőrúdjainak kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Pedestal Azimuth Bearing Lubrication</span><span class="hu" lang="hu">Talapzat azimutcsapágyának kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Pinion Gear Lubrication</span><span class="hu" lang="hu">Azimut-hajtás kisfogaskerekének kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Heat Exchanger Inspection</span><span class="hu" lang="hu">Antenna hőcserélőjének ellenőrzése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Coolant Quality Check</span><span class="hu" lang="hu">Antenna hűtőfolyadékának minőségellenőrzése</span></div>
+<div class="usage-entry"><span class="en" lang="en">RU Cleaning and Inspection</span><span class="hu" lang="hu">RU tisztítása és ellenőrzése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">External Connectors Environmental Protection Treatment</span><span class="hu" lang="hu">Külső csatlakozók korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators to Antenna Assembly Bolts and Lock Thread Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorokat az antennaszerelvényhez rögzítő csavarok és biztosítómenetek korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Extending Section Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorok kitolható szakaszának korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Regular Lubrication</span><span class="hu" lang="hu">Szintezőemelők rendszeres kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Extenders Regular Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok rendszeres kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Extending Part Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők kitolható részeinek korrózióvédelmi kezelése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">60 MONTHS</span><span class="hu" lang="hu">60 HAVONTA</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Bottom Nipple Extensive Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok alsó zsírzógombjainak átfogó kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Extensive Lubrication</span><span class="hu" lang="hu">Szintezőemelők átfogó kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Extenders Extensive Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok átfogó kenése</span></div>
+</div>
+</section>
+<section class="screen" id="use-clp68">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">CLP HC 68</span><span class="hu" lang="hu">CLP HC 68</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Not specified</span><span class="hu" lang="hu">Nincs megadva</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></div>
+</div>
+</section>
+<section class="screen" id="use-clp220">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">CLP HC 220</span><span class="hu" lang="hu">CLP HC 220</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Not specified</span><span class="hu" lang="hu">Nincs megadva</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></div>
+</div>
+</section>
+<section class="screen" id="use-densoplast">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Densoplast tape</span><span class="hu" lang="hu">Densoplast szalag</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">DENSO GmbH</span><span class="hu" lang="hu">DENSO GmbH</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Densoplast Tape Environmental Protection Treatment</span><span class="hu" lang="hu">Densoplast szalag korrózióvédelmi kezelése</span></div>
+</div>
+</section>
+<section class="screen" id="use-distilled">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Distilled water</span><span class="hu" lang="hu">Desztillált víz</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">MONTHLY</span><span class="hu" lang="hu">HAVI</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Batteries Visual Inspection</span><span class="hu" lang="hu">Antennaakkumulátorok szemrevételezéses ellenőrzése</span></div>
+</div>
+</section>
+<section class="screen" id="use-dc4">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Dow Corning 4</span><span class="hu" lang="hu">Dow Corning 4</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Dow</span><span class="hu" lang="hu">Dow</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">External Connectors Environmental Protection Treatment</span><span class="hu" lang="hu">Külső csatlakozók korrózióvédelmi kezelése</span></div>
+</div>
+</section>
+<section class="screen" id="use-ipa">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">IPA (Isopropyl Alcohol)</span><span class="hu" lang="hu">IPA (Isopropyl Alcohol)</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Any commercial</span><span class="hu" lang="hu">Bármely kereskedelmi gyártó</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">MONTHLY</span><span class="hu" lang="hu">HAVI</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Batteries Visual Inspection</span><span class="hu" lang="hu">Antennaakkumulátorok szemrevételezéses ellenőrzése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Zero Pin Environmental Protection Treatment</span><span class="hu" lang="hu">Nullhelyzet-rögzítő csap korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Support Beams Locking Mechanism Environmental Protection Treatment</span><span class="hu" lang="hu">Antennatámasztó gerendák reteszelőszerkezetének korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">CU Rack Rear Screws Environmental Protection Treatment</span><span class="hu" lang="hu">CU-állvány hátsó csavarjainak korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Micro-Switches Environmental Protection Treatment</span><span class="hu" lang="hu">Mikrokapcsolók korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Cooling Pipes Environmental Protection Treatment</span><span class="hu" lang="hu">Hűtőközeg-csövek korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jack Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Densoplast Tape Environmental Protection Treatment</span><span class="hu" lang="hu">Densoplast szalag korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Maintenance Platform Maintenance</span><span class="hu" lang="hu">Karbantartóplatform karbantartása</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Support Beams Lubrication</span><span class="hu" lang="hu">Antennatámasztó gerendák kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Bracing Bars Lubrication</span><span class="hu" lang="hu">Antenna merevítőrúdjainak kenése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">External Connectors Environmental Protection Treatment</span><span class="hu" lang="hu">Külső csatlakozók korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators to Antenna Assembly Bolts and Lock Thread Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorokat az antennaszerelvényhez rögzítő csavarok és biztosítómenetek korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Lubrication</span><span class="hu" lang="hu">Elevációs aktuátorok kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators Extending Section Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorok kitolható szakaszának korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Regular Lubrication</span><span class="hu" lang="hu">Szintezőemelők rendszeres kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Extenders Regular Lubrication</span><span class="hu" lang="hu">Kihúzható támaszok rendszeres kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Leveling Jacks Extending Part Environmental Protection Treatment</span><span class="hu" lang="hu">Szintezőemelők kitolható részeinek korrózióvédelmi kezelése</span></div>
+</div>
+</section>
+<section class="screen" id="use-isoflex">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Isoflex Topas L32</span><span class="hu" lang="hu">Isoflex Topas L32</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">Klüber Lubrication</span><span class="hu" lang="hu">Klüber Lubrication</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Zero Pin Environmental Protection Treatment</span><span class="hu" lang="hu">Nullhelyzet-rögzítő csap korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">CU Rack Rear Screws Environmental Protection Treatment</span><span class="hu" lang="hu">CU-állvány hátsó csavarjainak korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Automatic Greasing Pump Filling</span><span class="hu" lang="hu">Automatikus zsírzószivattyú feltöltése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Pedestal Azimuth Bearing Lubrication</span><span class="hu" lang="hu">Talapzat azimutcsapágyának kenése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Pinion Gear Lubrication</span><span class="hu" lang="hu">Azimut-hajtás kisfogaskerekének kenése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Elevation Actuators to Antenna Assembly Bolts and Lock Thread Environmental Protection Treatment</span><span class="hu" lang="hu">Elevációs aktuátorokat az antennaszerelvényhez rögzítő csavarok és biztosítómenetek korrózióvédelmi kezelése</span></div>
+</div>
+</section>
+<section class="screen" id="use-mobil626">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Mobil SHC 626</span><span class="hu" lang="hu">Mobil SHC 626</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">ExxonMobil</span><span class="hu" lang="hu">ExxonMobil</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></div>
+</div>
+</section>
+<section class="screen" id="use-mobil630">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Mobil SHC 630</span><span class="hu" lang="hu">Mobil SHC 630</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">ExxonMobil</span><span class="hu" lang="hu">ExxonMobil</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Azimuth Gear Oil Replacement</span><span class="hu" lang="hu">Azimut-hajtómű olajcseréje</span></div>
+</div>
+</section>
+<section class="screen" id="use-metal">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Molykote Metal Protector Plus</span><span class="hu" lang="hu">Molykote Metal Protector Plus</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">DuPont</span><span class="hu" lang="hu">DuPont</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Micro-Switches Environmental Protection Treatment</span><span class="hu" lang="hu">Mikrokapcsolók korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Cooling Pipes Environmental Protection Treatment</span><span class="hu" lang="hu">Hűtőközeg-csövek korrózióvédelmi kezelése</span></div>
+<div class="usage-entry"><span class="en" lang="en">Maintenance Platform Maintenance</span><span class="hu" lang="hu">Karbantartóplatform karbantartása</span></div>
+</div>
+</section>
+<section class="screen" id="use-p37">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Molykote P37</span><span class="hu" lang="hu">Molykote P37</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">DuPont</span><span class="hu" lang="hu">DuPont</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Support Beams Locking Mechanism Environmental Protection Treatment</span><span class="hu" lang="hu">Antennatámasztó gerendák reteszelőszerkezetének korrózióvédelmi kezelése</span></div>
+</div>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Antenna Support Beams Lubrication</span><span class="hu" lang="hu">Antennatámasztó gerendák kenése</span></div>
+</div>
+</section>
+<section class="screen" id="use-rocol">
+<header class="subhead"><a aria-label="Back / Vissza" class="nav-arrow" href="#consumables">←</a><h1><span class="en" lang="en">CONSUMABLE</span><span class="hu" lang="hu">SEGÉDANYAG</span></h1><a aria-label="Home / Főoldal" class="nav-arrow" href="#home">⌂</a></header>
+<h2 class="detail-title"><span class="en" lang="en">Rocol Sapphire 2</span><span class="hu" lang="hu">Rocol Sapphire 2</span></h2>
+<div class="mfr-card"><div class="mfr-label"><span class="en" lang="en">MANUFACTURER</span><span class="hu" lang="hu">GYÁRTÓ</span></div><div class="mfr-val"><span class="en" lang="en">ROCOL (ITW)</span><span class="hu" lang="hu">ROCOL (ITW)</span></div></div>
+<h3 class="section-title"><span class="en" lang="en">USED IN</span><span class="hu" lang="hu">FELHASZNÁLÁS HELYEI</span></h3>
+<div class="usage-group"><div class="usage-head"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></div>
+<div class="usage-entry"><span class="en" lang="en">Maintenance Platform Maintenance</span><span class="hu" lang="hu">Karbantartóplatform karbantartása</span></div>
+</div>
+</section>
+
+<section class="screen" id="search-results">
+<header class="subhead"><a class="nav-arrow" href="#home" aria-label="Back / Vissza">←</a><h1><span class="en" lang="en">SEARCH RESULTS</span><span class="hu" lang="hu">KERESÉSI EREDMÉNYEK</span></h1><a class="nav-arrow" href="#home" aria-label="Home / Főoldal">⌂</a></header>
+<div id="search-summary" class="result-intro" aria-live="polite"></div>
+<div id="search-matches"></div>
+</section>
+<section id="home">
+<header class="homehead"><div aria-label="Choose language / Nyelvválasztás" class="flagbox"><label aria-label="English" class="flag" for="lang-en" title="English">🇮🇱</label><label aria-label="Magyar" class="flag" for="lang-hu" title="Magyar">🇭🇺</label></div><h1><span class="en" lang="en">PREVENTIVE MAINTENANCE</span><span class="hu" lang="hu">MEGELŐZŐ KARBANTARTÁS</span></h1></header>
+<div class="search-area" role="search" aria-label="Search activities and consumables / Feladatok és segédanyagok keresése">
+  <div class="search-bar">
+    <input class="search-input" id="search-input" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search / Keresés..." aria-label="Search activities and consumables / Feladatok és segédanyagok keresése" />
+    <button class="search-btn exact" id="search-exact" type="button" title="Exact match / Pontos egyezés" aria-label="Exact match / Pontos egyezés"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.6" cy="10.6" r="6.7"></circle><path d="m15.7 15.7 5.2 5.2"></path></svg></button>
+    <button class="search-btn partial" id="search-partial" type="button" title="Partial match / Részleges egyezés" aria-label="Partial match / Részleges egyezés"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.6" cy="10.6" r="6.7"></circle><path d="m15.7 15.7 5.2 5.2"></path></svg></button>
+  </div>
+  <div class="search-legend"><span class="search-label"><i class="search-dot" aria-hidden="true"></i><span class="en" lang="en">Exact</span><span class="hu" lang="hu">Pontos</span></span><span class="search-label"><i class="search-dot blue" aria-hidden="true"></i><span class="en" lang="en">Partial</span><span class="hu" lang="hu">Részleges</span></span></div>
+</div>
+<div class="stack">
+<a class="panel panel-weekly" href="#period-weekly"><span class="panel-name"><span class="en" lang="en">WEEKLY</span><span class="hu" lang="hu">HETI</span></span><span aria-label="Completed out of 2" class="count count-weekly"><span> / 2</span></span></a>
+<a class="panel panel-monthly" href="#period-monthly"><span class="panel-name"><span class="en" lang="en">MONTHLY</span><span class="hu" lang="hu">HAVI</span></span><span aria-label="Completed out of 10" class="count count-monthly"><span> / 10</span></span></a>
+<a class="panel panel-quarterly" href="#period-quarterly"><span class="panel-name"><span class="en" lang="en">QUARTERLY (3 MONTHS)</span><span class="hu" lang="hu">NEGYEDÉVES (3 HAVONTA)</span></span><span aria-label="Completed out of 15" class="count count-quarterly"><span> / 15</span></span></a>
+<a class="panel panel-semiannual" href="#period-semiannual"><span class="panel-name"><span class="en" lang="en">SEMI-ANNUAL (6 MONTHS)</span><span class="hu" lang="hu">FÉLÉVES (6 HAVONTA)</span></span><span aria-label="Completed out of 11" class="count count-semiannual"><span>/ 11</span></span></a>
+<a class="panel panel-annual" href="#period-annual"><span class="panel-name"><span class="en" lang="en">ANNUAL (12 MONTHS)</span><span class="hu" lang="hu">ÉVES (12 HAVONTA)</span></span><span aria-label="Completed out of 11" class="count count-annual"><span> / 11</span></span></a>
+<a class="panel panel-sixty" href="#period-sixty"><span class="panel-name"><span class="en" lang="en">60 MONTHS</span><span class="hu" lang="hu">60 HAVONTA</span></span><span aria-label="Completed out of 3" class="count count-sixty"><span> / 3</span></span></a>
+<a class="panel" href="#consumables"><span class="panel-name"><span class="en" lang="en">CONSUMABLES</span><span class="hu" lang="hu">KARBANTARTÁSI SEGÉDANYAGOK</span></span><span aria-hidden="true" class="panel-icon">›</span></a></div>
+<a class="clear-button" href="index.html"><span class="en" lang="en">CLEAR ALL</span><span class="hu" lang="hu">ÖSSZES TÖRLÉSE</span></a></section>
+</main>
+<script>
+/* Offline, self-contained search only. Checklist controls remain native HTML/CSS. */
+(function(){
+  'use strict';
+  var input=document.getElementById('search-input');
+  var buttonExact=document.getElementById('search-exact');
+  var buttonPartial=document.getElementById('search-partial');
+  var summary=document.getElementById('search-summary');
+  var matches=document.getElementById('search-matches');
+  if(!input||!buttonExact||!buttonPartial||!summary||!matches){return;}
+
+  function selectedLang(){return document.getElementById('lang-hu').checked?'hu':'en';}
+  function label(en,hu){return selectedLang()==='hu'?hu:en;}
+  function localizedText(node,language){
+    var el=node.querySelector('.'+language);
+    return (el?el.textContent:node.textContent).trim();
+  }
+  function normalise(str){
+    var s=String(str).toLocaleLowerCase().trim().replace(/\s+/g,' ');
+    if(typeof s.normalize==='function'){s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+    return s;
+  }
+  function el(tag,klass,text){var n=document.createElement(tag);if(klass){n.className=klass;}if(text!==undefined){n.textContent=text;}return n;}
+  function localPair(parent,en,hu){
+    var e=el('span','en',en);e.lang='en';
+    var h=el('span','hu',hu);h.lang='hu';
+    parent.appendChild(e);parent.appendChild(h);
+  }
+  var activities=[];
+  var periods=document.querySelectorAll('section[id^="period-"]');
+  for(var p=0;p<periods.length;p++){
+    var period=periods[p];
+    var periodEn=localizedText(period.querySelector('header h1'),'en');
+    var periodHu=localizedText(period.querySelector('header h1'),'hu');
+    var rows=period.querySelectorAll('.task-row');
+    for(var t=0;t<rows.length;t++){
+      var row=rows[t];
+      var name=row.querySelector('.task-name');
+      var link=name.tagName.toLowerCase()==='a'?name:null;
+      activities.push({
+        en:localizedText(name,'en'), hu:localizedText(name,'hu'),
+        href:link?link.getAttribute('href'):'#'+period.id,
+        periodEn:periodEn,periodHu:periodHu, row:row, noConsumables:!link
+      });
+    }
+  }
+  var consumables=[];
+  var consumableLinks=document.querySelectorAll('#consumables tbody .tablelink');
+  for(var c=0;c<consumableLinks.length;c++){
+    var a=consumableLinks[c];
+    consumables.push({en:localizedText(a,'en'),hu:localizedText(a,'hu'),href:a.getAttribute('href')});
+  }
+  function addHeading(en,hu){var h=el('div','result-group');localPair(h,en,hu);matches.appendChild(h);}
+  function addResult(item,isActivity){
+    var a=el('a','result-entry');a.href=item.href;
+    var body=el('div','result-name');localPair(body,item.en,item.hu);
+    if(isActivity){var sub=el('div','result-sub');localPair(sub,item.periodEn,item.periodHu);body.appendChild(sub);}
+    a.appendChild(body);a.appendChild(el('span','result-chev','›'));
+    if(isActivity&&item.noConsumables){
+      a.addEventListener('click',function(){
+        var row=item.row;
+        window.setTimeout(function(){
+          var old=document.querySelector('.target-highlight');if(old){old.classList.remove('target-highlight');}
+          row.classList.add('target-highlight');
+          if(row.scrollIntoView){row.scrollIntoView({block:'center',behavior:'auto'});}
+          window.setTimeout(function(){row.classList.remove('target-highlight');},2400);
+        },80);
+      });
+    }
+    matches.appendChild(a);
+  }
+  function doSearch(exact){
+    var typed=input.value.trim();
+    if(!typed){input.focus();return;}
+    var lang=selectedLang();var term=normalise(typed);
+    function isMatch(item){var value=normalise(item[lang]);return exact?value===term:value.indexOf(term)!==-1;}
+    var foundTasks=activities.filter(isMatch);
+    var foundConsumables=consumables.filter(isMatch);
+    matches.textContent='';
+    var count=foundTasks.length+foundConsumables.length;
+    var description=label(exact?'Exact':'Partial',exact?'Pontos':'Részleges');
+    summary.textContent=label(count+' result(s) • '+description+' • “'+typed+'”',count+' találat • '+description+' • „'+typed+'”');
+    if(!count){var no=el('div','result-empty');localPair(no,'No matching activities or consumables.','Nincs egyező karbantartási feladat vagy segédanyag.');matches.appendChild(no);}
+    if(foundTasks.length){addHeading('ACTIVITIES ('+foundTasks.length+')','KARBANTARTÁSI FELADATOK ('+foundTasks.length+')');for(var i=0;i<foundTasks.length;i++){addResult(foundTasks[i],true);}}
+    if(foundConsumables.length){addHeading('CONSUMABLES ('+foundConsumables.length+')','SEGÉDANYAGOK ('+foundConsumables.length+')');for(var j=0;j<foundConsumables.length;j++){addResult(foundConsumables[j],false);}}
+    window.location.hash='search-results';
+    window.scrollTo(0,0);
+  }
+  buttonExact.addEventListener('click',function(){doSearch(true);});
+  buttonPartial.addEventListener('click',function(){doSearch(false);});
+  input.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();doSearch(false);}});
+})();
+</script>
+</body></html>
